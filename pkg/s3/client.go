@@ -44,6 +44,8 @@ type FSMeta struct {
 }
 
 func NewClient(cfg *Config) (*s3Client, error) {
+	glog.Infof("--> NewClient with endpoint: %s, region: %s, ak: %s, sk: %s", cfg.Endpoint, cfg.Region, cfg.AccessKeyID, cfg.SecretAccessKey)
+
 	var client = &s3Client{}
 
 	client.Config = cfg
