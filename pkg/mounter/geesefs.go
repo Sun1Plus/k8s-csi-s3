@@ -177,10 +177,17 @@ func (geesefs *geesefsMounter) Mount(target, volumeID string) error {
 			Value: dbus.MakeVariant("inactive-or-failed"),
 		},
 	}
+
+	glog.Infof("--> Checking existing systemd unit %s for GeeseFS mount", unitName)
+
 	unitProps, err := conn.GetAllProperties(unitName)
 	if err == nil {
+		glog.Infof("--> Found existing systemd unit %s for GeeseFS mount", unitName)
+
 		// Unit already exists
 		if s, ok := unitProps["ActiveState"].(string); ok && (s == "active" || s == "activating" || s == "reloading") {
+			glog.Infof("--> Systemd unit %s is already active", unitName)
+
 			// Unit is already active
 			curPath := ""
 			prevExec, ok := unitProps["ExecStart"].([][]interface{})
@@ -198,14 +205,21 @@ func (geesefs *geesefsMounter) Mount(target, volumeID string) error {
 					volumeID, target, curPath,
 				)
 			}
+
+			glog.Infof("--> Systemd unit %s is already active, waiting for mount", unitName)
 			// Already mounted at right location, wait for mount
 			return waitForMount(target, 30*time.Second)
 		} else {
+			glog.Infof("--> Stopping systemd unit %s for GeeseFS mount", unitName)
+
 			// Stop and garbage collect the unit if automatic collection didn't work for some reason
 			conn.StopUnit(unitName, "replace", nil)
 			conn.ResetFailedUnit(unitName)
 		}
 	}
+
+	glog.Infof("--> Creating systemd unit %s for GeeseFS mount", unitName)
+
 	unitPath := "/run/systemd/system/" + unitName + ".d"
 	err = os.MkdirAll(unitPath, 0755)
 	if err != nil {
@@ -220,6 +234,8 @@ func (geesefs *geesefsMounter) Mount(target, volumeID string) error {
 	if err != nil {
 		return fmt.Errorf("Error writing %v/50-ExecStopPost.conf: %v", unitPath, err)
 	}
+
+	glog.Infof("--> Starting systemd unit %s for GeeseFS mount", unitName)
 	_, err = conn.StartTransientUnit(unitName, "replace", newProps, nil)
 	if err != nil {
 		return fmt.Errorf("Error starting systemd unit %s on host: %v", unitName, err)
