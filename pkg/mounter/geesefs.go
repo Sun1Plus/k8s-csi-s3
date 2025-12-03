@@ -3,6 +3,7 @@ package mounter
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"strings"
 	"time"
 
@@ -240,5 +241,27 @@ func (geesefs *geesefsMounter) Mount(target, volumeID string) error {
 	if err != nil {
 		return fmt.Errorf("Error starting systemd unit %s on host: %v", unitName, err)
 	}
+
+	// 立即检查服务状态
+	time.Sleep(2 * time.Second) // 给 systemd 一点时间
+	activeState, err := conn.GetUnitProperty(unitName, "ActiveState")
+	if err != nil {
+		glog.Errorf("--> Failed to get ActiveState for %s: %v", unitName, err)
+	} else {
+		glog.Infof("--> Unit %s ActiveState: %v", unitName, activeState.Value)
+	}
+
+	// 检查失败原因
+	subState, err := conn.GetUnitProperty(unitName, "SubState")
+	if err == nil {
+		glog.Infof("--> Unit %s SubState: %v", unitName, subState.Value)
+	}
+
+	// 检查 systemd 日志
+	cmd := exec.Command("journalctl", "-u", unitName, "--no-pager", "-n", "10")
+	if output, err := cmd.Output(); err == nil {
+		glog.Infof("--> Systemd unit %s journal:\n%s", unitName, string(output))
+	}
+
 	return waitForMount(target, 30*time.Second)
 }
