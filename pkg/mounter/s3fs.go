@@ -35,7 +35,7 @@ func (s3fs *s3fsMounter) Mount(target, volumeID string) error {
 	args := []string{
 		fmt.Sprintf("%s:/%s", s3fs.meta.BucketName, s3fs.meta.Prefix),
 		target,
-		"-o", "use_path_request_style",
+		// "-o", "use_path_request_style",
 		"-o", fmt.Sprintf("url=%s", s3fs.url),
 		"-o", "allow_other",
 		"-o", "mp_umask=000",
