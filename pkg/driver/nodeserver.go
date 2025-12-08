@@ -67,9 +67,12 @@ func getMeta(bucketName, prefix string, context map[string]string) *s3.FSMeta {
 
 func (ns *nodeServer) NodePublishVolume(ctx context.Context, req *csi.NodePublishVolumeRequest) (*csi.NodePublishVolumeResponse, error) {
 	glog.Infof("--> NodePublishVolume request secrets: %+v", req.GetSecrets())
+
 	volumeID := req.GetVolumeId()
 	targetPath := req.GetTargetPath()
 	stagingTargetPath := req.GetStagingTargetPath()
+
+	glog.Infof("--> NodePublishVolume volumeID: %s, targetPath: %s, stagingTargetPath: %s", volumeID, targetPath, stagingTargetPath)
 
 	// Check arguments
 	if req.GetVolumeCapability() == nil {
@@ -160,6 +163,8 @@ func (ns *nodeServer) NodeStageVolume(ctx context.Context, req *csi.NodeStageVol
 	volumeID := req.GetVolumeId()
 	stagingTargetPath := req.GetStagingTargetPath()
 	bucketName, prefix := volumeIDToBucketPrefix(volumeID)
+
+	glog.Infof("--> NodeStageVolume volumeID: %s, stagingTargetPath: %s", volumeID, stagingTargetPath)
 
 	// Check arguments
 	if len(volumeID) == 0 {

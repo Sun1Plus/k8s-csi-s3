@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/golang/glog"
 	"github.com/yandex-cloud/k8s-csi-s3/pkg/s3"
 )
 
@@ -29,9 +30,14 @@ func newS3fsMounter(meta *s3.FSMeta, cfg *s3.Config) (Mounter, error) {
 }
 
 func (s3fs *s3fsMounter) Mount(target, volumeID string) error {
+	glog.Infof("--> Mounting S3FS volume: %s at target: %s", volumeID, target)
+
 	if err := writes3fsPass(s3fs.pwFileContent); err != nil {
 		return err
 	}
+
+	glog.Infof("--> Mounting S3FS args, bucket: %s, prefix: %s", s3fs.meta.BucketName, s3fs.meta.Prefix)
+
 	args := []string{
 		fmt.Sprintf("%s:/%s", s3fs.meta.BucketName, s3fs.meta.Prefix),
 		target,
