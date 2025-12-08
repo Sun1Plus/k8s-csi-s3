@@ -21,7 +21,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
-	"path"
 	"strings"
 
 	"github.com/golang/glog"
@@ -47,11 +46,16 @@ func (cs *controllerServer) CreateVolume(ctx context.Context, req *csi.CreateVol
 	bucketName := volumeID
 	prefix := ""
 
+	glog.Infof("--> CreateVolume volumeID: %s, bucketName: %s, prefix: %s", volumeID, bucketName, prefix)
+
+	glog.Infof("--> CreateVolume mounter params: %+v", params)
+
 	// check if bucket name is overridden
 	if params[mounter.BucketKey] != "" {
 		bucketName = params[mounter.BucketKey]
-		prefix = volumeID
-		volumeID = path.Join(bucketName, prefix)
+		// prefix = volumeID
+		// volumeID = path.Join(bucketName, prefix)
+		volumeID = bucketName
 	}
 
 	if err := cs.Driver.ValidateControllerServiceRequest(csi.ControllerServiceCapability_RPC_CREATE_DELETE_VOLUME); err != nil {
