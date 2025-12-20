@@ -22,9 +22,11 @@ const (
 
 func newS3fsMounter(meta *s3.FSMeta, cfg *s3.Config) (Mounter, error) {
 	return &s3fsMounter{
-		meta:          meta,
-		url:           cfg.Endpoint,
-		region:        cfg.Region,
+		meta: meta,
+		// url:           cfg.Endpoint,
+		// region:        cfg.Region,
+		url:           "https://uat-s3.siliconflow.cn",
+		region:        "oss-cn-shanghai",
 		pwFileContent: cfg.AccessKeyID + ":" + cfg.SecretAccessKey,
 	}, nil
 }
@@ -36,19 +38,19 @@ func (s3fs *s3fsMounter) Mount(target, volumeID string) error {
 		return err
 	}
 
-	glog.Infof("--> Mounting S3FS args, bucket: %s, prefix: %s", s3fs.meta.BucketName, s3fs.meta.Prefix)
+	glog.Infof("--> Mounting S3FS args, bucket: %s prefix: %s", s3fs.meta.BucketName, s3fs.meta.Prefix)
 
 	args := []string{
 		fmt.Sprintf("%s:/%s", s3fs.meta.BucketName, s3fs.meta.Prefix),
 		target,
 		// "-o", "use_path_request_style",
+		// default files-uat
 		"-o", fmt.Sprintf("url=%s", s3fs.url),
+		"-o", fmt.Sprintf("endpoint=%s", s3fs.region),
 		"-o", "allow_other",
 		"-o", "mp_umask=000",
 	}
-	if s3fs.region != "" {
-		args = append(args, "-o", fmt.Sprintf("endpoint=%s", s3fs.region))
-	}
+
 	args = append(args, s3fs.meta.MountOptions...)
 	return fuseMount(target, s3fsCmd, args, nil)
 }
