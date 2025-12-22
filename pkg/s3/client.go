@@ -13,6 +13,7 @@ import (
 	"github.com/golang/glog"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
+	"gopkg.in/ini.v1"
 )
 
 const (
@@ -81,16 +82,24 @@ func NewClient(cfg *Config) (*s3Client, error) {
 }
 
 func NewClientFromSecret(secret map[string]string) (*s3Client, error) {
+	// 使用ini库解析
+	cfg, err := ini.Load([]byte(secret["credentials"]))
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse credentials INI: %v", err)
+	}
+
+	// 获取default section
+	section := cfg.Section("default")
+
 	insecure, _ := strconv.ParseBool(secret["insecure"])
 	return NewClient(&Config{
-		AccessKeyID:     secret["aws_access_key_id"],
-		SecretAccessKey: secret["aws_secret_access_key"],
-		SessionToken:    secret["aws_session_token"],
+		AccessKeyID:     section.Key("aws_access_key_id").String(),
+		SecretAccessKey: section.Key("aws_secret_access_key").String(),
+		SessionToken:    section.Key("aws_session_token").String(),
 		Region:          "oss-cn-shanghai",
 		Endpoint:        "https://uat-s3.siliconflow.cn",
-		// Mounter is set in the volume preferences, not secrets
-		Mounter:  "",
-		Insecure: insecure,
+		Mounter:         "",
+		Insecure:        insecure,
 	})
 }
 

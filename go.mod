@@ -4,8 +4,8 @@ go 1.15
 
 require (
 	github.com/container-storage-interface/spec v1.1.0
-	github.com/coreos/go-systemd/v22 v22.5.0 // indirect
-	github.com/godbus/dbus/v5 v5.0.4 // indirect
+	github.com/coreos/go-systemd/v22 v22.5.0
+	github.com/godbus/dbus/v5 v5.0.4
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/protobuf v1.1.0 // indirect
 	github.com/kubernetes-csi/csi-lib-utils v0.6.1 // indirect
@@ -22,6 +22,7 @@ require (
 	golang.org/x/sys v0.0.0-20200922070232-aee5d888a860 // indirect
 	google.golang.org/genproto v0.0.0-20180716172848-2731d4fa720b // indirect
 	google.golang.org/grpc v1.13.0
+	gopkg.in/ini.v1 v1.57.0
 	k8s.io/apimachinery v0.0.0-20180714051327-705cfa51a97f // indirect
 	k8s.io/klog v0.2.0 // indirect
 	k8s.io/kubernetes v1.13.4
