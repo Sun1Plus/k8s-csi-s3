@@ -29,6 +29,7 @@ type s3Client struct {
 type Config struct {
 	AccessKeyID     string
 	SecretAccessKey string
+	SessionToken    string
 	Region          string
 	Endpoint        string
 	Mounter         string
@@ -67,7 +68,7 @@ func NewClient(cfg *Config) (*s3Client, error) {
 	}
 	minioClient, err := minio.New(endpoint, &minio.Options{
 		Transport: transport,
-		Creds:     credentials.NewStaticV4(client.Config.AccessKeyID, client.Config.SecretAccessKey, ""),
+		Creds:     credentials.NewStaticV4(client.Config.AccessKeyID, client.Config.SecretAccessKey, client.Config.SessionToken),
 		Region:    client.Config.Region,
 		Secure:    ssl,
 	})
@@ -82,10 +83,11 @@ func NewClient(cfg *Config) (*s3Client, error) {
 func NewClientFromSecret(secret map[string]string) (*s3Client, error) {
 	insecure, _ := strconv.ParseBool(secret["insecure"])
 	return NewClient(&Config{
-		AccessKeyID:     secret["accessKeyID"],
-		SecretAccessKey: secret["secretAccessKey"],
-		Region:          secret["region"],
-		Endpoint:        secret["endpoint"],
+		AccessKeyID:     secret["aws_access_key_id"],
+		SecretAccessKey: secret["aws_secret_access_key"],
+		SessionToken:    secret["aws_session_token"],
+		Region:          "oss-cn-shanghai",
+		Endpoint:        "https://uat-s3.siliconflow.cn",
 		// Mounter is set in the volume preferences, not secrets
 		Mounter:  "",
 		Insecure: insecure,
