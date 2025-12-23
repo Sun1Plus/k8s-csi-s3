@@ -123,7 +123,7 @@ func (cs *controllerServer) DeleteVolume(ctx context.Context, req *csi.DeleteVol
 		glog.V(3).Infof("Invalid delete volume req: %v", req)
 		return nil, err
 	}
-	glog.V(4).Infof("Deleting volume %s", volumeID)
+	glog.V(4).Infof("Deleted volume %s", volumeID)
 
 	// client, err := s3.NewClientFromSecret(req.GetSecrets())
 	// if err != nil {
