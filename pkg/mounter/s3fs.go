@@ -65,7 +65,7 @@ func (s3fs *s3fsMounter) Mount(target, volumeID string) error {
 		"-o", "use_path_request_style",
 		"-o", "dbglevel=info",
 		"-o", "curldbg",
-		"-o", "no_check_certificate",1
+		"-o", "no_check_certificate",
 		"-d",
 	}
 
