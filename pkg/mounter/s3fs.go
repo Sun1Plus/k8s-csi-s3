@@ -65,11 +65,11 @@ func (s3fs *s3fsMounter) Mount(target, volumeID string) error {
 		"-o", "use_path_request_style",
 		"-o", "dbglevel=info",
 		"-o", "curldbg",
-		"-o", "no_check_certificate",
+		"-o", "no_check_certificate",1
 		"-d",
 	}
 
-	args = append(args, s3fs.meta.MountOptions...)
+	// args = append(args, s3fs.meta.MountOptions...)
 	return fuseMount(target, s3fsCmd, args, envVars)
 }
 
