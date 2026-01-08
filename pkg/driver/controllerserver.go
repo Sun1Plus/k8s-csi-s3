@@ -21,6 +21,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
+	"path"
 	"strings"
 
 	"github.com/golang/glog"
@@ -53,9 +54,10 @@ func (cs *controllerServer) CreateVolume(ctx context.Context, req *csi.CreateVol
 	// check if bucket name is overridden
 	if params[mounter.BucketKey] != "" {
 		bucketName = params[mounter.BucketKey]
-		// prefix = volumeID
-		// volumeID = path.Join(bucketName, prefix)
-		volumeID = bucketName
+		if params[mounter.PrefixKey] != "" {
+			prefix = params[mounter.PrefixKey]
+		}
+		volumeID = path.Join(bucketName, prefix)
 	}
 
 	if err := cs.Driver.ValidateControllerServiceRequest(csi.ControllerServiceCapability_RPC_CREATE_DELETE_VOLUME); err != nil {
@@ -84,14 +86,15 @@ func (cs *controllerServer) CreateVolume(ctx context.Context, req *csi.CreateVol
 	}
 
 	if !exists {
-		if err = client.CreateBucket(bucketName); err != nil {
-			return nil, fmt.Errorf("failed to create bucket %s: %v", bucketName, err)
-		}
+		return nil, fmt.Errorf("failed to check if bucket %s exists: %v", volumeID, err)
+		// if err = client.CreateBucket(bucketName); err != nil {
+		// 	return nil, fmt.Errorf("failed to create bucket %s: %v", bucketName, err)
+		// }
 	}
 
-	if err = client.CreatePrefix(bucketName, prefix); err != nil {
-		return nil, fmt.Errorf("failed to create prefix %s: %v", prefix, err)
-	}
+	// if err = client.CreatePrefix(bucketName, prefix); err != nil {
+	// 	return nil, fmt.Errorf("failed to create prefix %s: %v", prefix, err)
+	// }
 
 	glog.V(4).Infof("create volume %s", volumeID)
 	// DeleteVolume lacks VolumeContext, but publish&unpublish requests have it,
