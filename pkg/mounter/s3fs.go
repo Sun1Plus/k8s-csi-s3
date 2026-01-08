@@ -67,6 +67,7 @@ func (s3fs *s3fsMounter) Mount(target, volumeID string) error {
 		"-o", "curldbg",
 		"-o", "no_check_certificate",
 		"-d",
+		">", "/home/log/s3fs.log",
 	}
 
 	// args = append(args, s3fs.meta.MountOptions...)
