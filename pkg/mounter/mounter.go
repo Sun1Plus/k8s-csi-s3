@@ -115,20 +115,25 @@ func SystemdUnmount(volumeID string) (bool, error) {
 
 func FuseUnmount(path string) error {
 	if err := mount.New("").Unmount(path); err != nil {
+		glog.Errorf("Error unmounting fuse mount: %s", err)
 		return err
 	}
-	// as fuse quits immediately, we will try to wait until the process is done
-	process, err := FindFuseMountProcess(path)
-	if err != nil {
-		glog.Errorf("Error getting PID of fuse mount: %s", err)
-		return nil
-	}
-	if process == nil {
-		glog.Warningf("Unable to find PID of fuse mount %s, it must have finished already", path)
-		return nil
-	}
-	glog.Infof("Found fuse pid %v of mount %s, checking if it still runs", process.Pid, path)
-	return waitForProcess(process, 20)
+
+	// Do not wait for process to avoid race conditions with subsequent CSI operations
+
+	// // as fuse quits immediately, we will try to wait until the process is done
+	// process, err := FindFuseMountProcess(path)
+	// if err != nil {
+	// 	glog.Errorf("Error getting PID of fuse mount: %s", err)
+	// 	return nil
+	// }
+	// if process == nil {
+	// 	glog.Warningf("Unable to find PID of fuse mount %s, it must have finished already", path)
+	// 	return nil
+	// }
+	// glog.Infof("Found fuse pid %v of mount %s, checking if it still runs", process.Pid, path)
+	// return waitForProcess(process, 20)
+	return nil
 }
 
 func waitForMount(path string, timeout time.Duration) error {

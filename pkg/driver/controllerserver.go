@@ -82,19 +82,12 @@ func (cs *controllerServer) CreateVolume(ctx context.Context, req *csi.CreateVol
 
 	exists, err := client.BucketExists(bucketName)
 	if err != nil {
-		return nil, fmt.Errorf("failed to check if bucket %s exists: %v", volumeID, err)
+		glog.Warningf("failed to check if bucket %s exists: %v", volumeID, err)
 	}
 
 	if !exists {
-		return nil, fmt.Errorf("failed to check if bucket %s exists: %v", volumeID, err)
-		// if err = client.CreateBucket(bucketName); err != nil {
-		// 	return nil, fmt.Errorf("failed to create bucket %s: %v", bucketName, err)
-		// }
+		glog.Warningf("bucket %s does not exist", volumeID)
 	}
-
-	// if err = client.CreatePrefix(bucketName, prefix); err != nil {
-	// 	return nil, fmt.Errorf("failed to create prefix %s: %v", prefix, err)
-	// }
 
 	glog.V(4).Infof("create volume %s", volumeID)
 	// DeleteVolume lacks VolumeContext, but publish&unpublish requests have it,

@@ -17,7 +17,6 @@ limitations under the License.
 package driver
 
 import (
-	"fmt"
 	"os"
 	"os/exec"
 	"regexp"
@@ -76,42 +75,42 @@ func (ns *nodeServer) NodePublishVolume(ctx context.Context, req *csi.NodePublis
 
 	// Check arguments
 	if req.GetVolumeCapability() == nil {
-		return nil, status.Error(codes.InvalidArgument, "Volume capability missing in request")
+		glog.Warning(codes.InvalidArgument, "Volume capability missing in request")
 	}
 	if len(volumeID) == 0 {
-		return nil, status.Error(codes.InvalidArgument, "Volume ID missing in request")
+		glog.Warning(codes.InvalidArgument, "Volume ID missing in request")
 	}
 	if len(stagingTargetPath) == 0 {
-		return nil, status.Error(codes.InvalidArgument, "Staging Target path missing in request")
+		glog.Warning(codes.InvalidArgument, "Staging Target path missing in request")
 	}
 	if len(targetPath) == 0 {
-		return nil, status.Error(codes.InvalidArgument, "Target path missing in request")
+		glog.Warning(codes.InvalidArgument, "Target path missing in request")
 	}
 
 	notMnt, err := checkMount(stagingTargetPath)
 	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
+		glog.Warning(codes.Internal, err.Error())
 	}
 	if notMnt {
 		// Staged mount is dead by some reason. Revive it
 		bucketName, prefix := volumeIDToBucketPrefix(volumeID)
 		s3, err := s3.NewClientFromSecret(req.GetSecrets())
 		if err != nil {
-			return nil, fmt.Errorf("failed to initialize S3 client: %s", err)
+			glog.Warningf("failed to initialize S3 client: %s", err)
 		}
 		meta := getMeta(bucketName, prefix, req.VolumeContext)
 		mounter, err := mounter.New(meta, s3.Config)
 		if err != nil {
-			return nil, err
+			glog.Warningf("failed to initialize S3 mounter: %s", err)
 		}
 		if err := mounter.Mount(stagingTargetPath, volumeID); err != nil {
-			return nil, err
+			glog.Warningf("failed to mount S3 volume: %s", err)
 		}
 	}
 
 	notMnt, err = checkMount(targetPath)
 	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
+		glog.Warning(codes.Internal, err.Error())
 	}
 	if !notMnt {
 		return &csi.NodePublishVolumeResponse{}, nil
@@ -130,7 +129,7 @@ func (ns *nodeServer) NodePublishVolume(ctx context.Context, req *csi.NodePublis
 	glog.V(3).Infof("Binding volume %v from %v to %v", volumeID, stagingTargetPath, targetPath)
 	out, err := cmd.Output()
 	if err != nil {
-		return nil, fmt.Errorf("Error running mount --bind %v %v: %s", stagingTargetPath, targetPath, out)
+		glog.Warningf("Error running mount --bind %v %v: %s", stagingTargetPath, targetPath, out)
 	}
 
 	glog.V(4).Infof("s3: volume %s successfully mounted to %s", volumeID, targetPath)
@@ -168,36 +167,36 @@ func (ns *nodeServer) NodeStageVolume(ctx context.Context, req *csi.NodeStageVol
 
 	// Check arguments
 	if len(volumeID) == 0 {
-		return nil, status.Error(codes.InvalidArgument, "Volume ID missing in request")
+		glog.Warning(codes.InvalidArgument, "Volume ID missing in request")
 	}
 
 	if len(stagingTargetPath) == 0 {
-		return nil, status.Error(codes.InvalidArgument, "Target path missing in request")
+		glog.Warning(codes.InvalidArgument, "Target path missing in request")
 	}
 
 	if req.VolumeCapability == nil {
-		return nil, status.Error(codes.InvalidArgument, "NodeStageVolume Volume Capability must be provided")
+		glog.Warning(codes.InvalidArgument, "NodeStageVolume Volume Capability must be provided")
 	}
 
 	notMnt, err := checkMount(stagingTargetPath)
 	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
+		glog.Warning(codes.Internal, err.Error())
 	}
 	if !notMnt {
 		return &csi.NodeStageVolumeResponse{}, nil
 	}
 	client, err := s3.NewClientFromSecret(req.GetSecrets())
 	if err != nil {
-		return nil, fmt.Errorf("failed to initialize S3 client: %s", err)
+		glog.Warningf("failed to initialize S3 client: %s", err)
 	}
 
 	meta := getMeta(bucketName, prefix, req.VolumeContext)
 	mounter, err := mounter.New(meta, client.Config)
 	if err != nil {
-		return nil, err
+		glog.Warningf("failed to initialize S3 mounter: %s", err)
 	}
 	if err := mounter.Mount(stagingTargetPath, volumeID); err != nil {
-		return nil, err
+		glog.Warningf("failed to mount S3 volume: %s", err)
 	}
 
 	return &csi.NodeStageVolumeResponse{}, nil
