@@ -147,8 +147,10 @@ func FuseUnmount(path string) error {
 func waitForMount(path string, timeout time.Duration) error {
 	var elapsed time.Duration
 	var interval = 10 * time.Millisecond
+	i := 0
 	for {
 		notMount, err := mount.New("").IsNotMountPoint(path)
+		glog.Info("retry ", i, ", notMount=", notMount, ", err=", err)
 		if err != nil {
 			return err
 		}
@@ -158,6 +160,7 @@ func waitForMount(path string, timeout time.Duration) error {
 		time.Sleep(interval)
 		elapsed = elapsed + interval
 		if elapsed >= timeout {
+			glog.Info("Timeout waiting for mount at ", path)
 			return errors.New("Timeout waiting for mount")
 		}
 	}
