@@ -70,9 +70,13 @@ func fuseMount(path string, command string, args []string, envs []string) error 
 		return fmt.Errorf("Error starting fuseMount command: %s\nargs: %s", command, args)
 	}
 
+	glog.Info("Fuse mount command started, waiting for mount to be ready...")
+
 	if err := waitForMount(path, 10*time.Second); err != nil {
 		return fmt.Errorf("Error wait for mount path: %s\n", path)
 	}
+
+	glog.Info("Fuse mount is ready")
 
 	return nil
 }
