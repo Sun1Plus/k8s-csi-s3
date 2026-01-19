@@ -65,12 +65,16 @@ func fuseMount(path string, command string, args []string, envs []string) error 
 	cmd.Env = append(cmd.Environ(), envs...)
 	glog.V(3).Infof("Mounting fuse with command: %s and args: %s", command, args)
 
-	out, err := cmd.Output()
-	if err != nil {
-		return fmt.Errorf("Error fuseMount command: %s\nargs: %s\noutput: %s", command, args, out)
+	// Start the process in the background without waiting for it to exit
+	if err := cmd.Start(); err != nil {
+		return fmt.Errorf("Error starting fuseMount command: %s\nargs: %s", command, args)
 	}
 
-	return waitForMount(path, 10*time.Second)
+	if err := waitForMount(path, 10*time.Second); err != nil {
+		return fmt.Errorf("Error wait for mount path: %s\n", path)
+	}
+
+	return nil
 }
 
 func Unmount(path string) error {
