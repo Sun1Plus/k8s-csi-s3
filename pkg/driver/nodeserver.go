@@ -87,11 +87,13 @@ func (ns *nodeServer) NodePublishVolume(ctx context.Context, req *csi.NodePublis
 		glog.Warning(codes.InvalidArgument, "Target path missing in request")
 	}
 
+	glog.Infof("--> NodePublishVolume checking mount")
 	notMnt, err := checkMount(stagingTargetPath)
 	if err != nil {
 		glog.Warning(codes.Internal, err.Error())
 	}
 	if notMnt {
+		glog.Infof("--> NodePublishVolume noMnt")
 		// Staged mount is dead by some reason. Revive it
 		bucketName, prefix := volumeIDToBucketPrefix(volumeID)
 		s3, err := s3.NewClientFromSecret(req.GetSecrets())
@@ -108,11 +110,13 @@ func (ns *nodeServer) NodePublishVolume(ctx context.Context, req *csi.NodePublis
 		}
 	}
 
+	glog.Infof("--> NodePublishVolume checking mount again")
 	notMnt, err = checkMount(targetPath)
 	if err != nil {
 		glog.Warning(codes.Internal, err.Error())
 	}
 	if !notMnt {
+		glog.Infof("--> NodePublishVolume noMnt")
 		return &csi.NodePublishVolumeResponse{}, nil
 	}
 
